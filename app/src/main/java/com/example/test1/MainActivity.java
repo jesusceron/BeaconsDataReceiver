@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.icu.util.Calendar;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
@@ -40,8 +41,8 @@ public class MainActivity extends AppCompatActivity {
             new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).setReportDelay(0)
                     .build();
 
-    String str = "testing";
-    final StringBuffer beacons_data = new StringBuffer(str);
+    //String str = "testing";
+    final StringBuffer beacons_data = new StringBuffer();
 
     private List<ScanFilter> scanFilters;
     public BluetoothManager BTmanager;
@@ -65,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
             public void onScanResult(int callbackType, ScanResult result) {
                 ScanRecord scanRecord = result.getScanRecord();
 
+                long millis = System.currentTimeMillis();
+
                 if (scanRecord == null) {
                     return;
                 }
@@ -80,9 +83,43 @@ public class MainActivity extends AppCompatActivity {
                     /* Choose only packets with accelerometer data (frame a)*/
                     if ((serviceData_Hex.substring(0,2).equals("22"))&(serviceData_Hex.substring(18,20).equals("00"))){
                         final int rssi = result.getRssi();
+                        int id = 0;
+                        switch (serviceData_Hex.substring(2,18)) {
 
-                        beacons_data.append(serviceData_Hex+"\n");
+                            case "46846e6187678448"://Coconut
+                                id = 1;
+                                break;
+                            case "7897b2192cd1330e"://Mint
+                                id = 2;
+                                break;
+                            case "F32a65edd388bbd4"://Ice MAL
+                                id = 3;
+                                break;
+                            case "c7f00010b342cf9e"://Blueberry
+                                id = 4;
+                                break;
+                            case "992074a3a75b01dd"://P2
+                                id = 5;
+                                break;
+                            case "eeaf86657d2312d5"://P1
+                                id = 6;
+                                break;
+                            case "7bb8ba833ded2db9"://B2
+                                id = 7;
+                                break;
+                            case "3e03d2aaf4265aa5"://B1
+                                id = 8;
+                                break;
+                            case "3c53d934182ed091"://G2
+                                id = 9;
+                                break;
+                            case "318da9517131bfab"://G1
+                                id = 10;
+                                break;
+                        }
 
+                        beacons_data.append(id+", "+millis+","+rssi+","+serviceData_Hex+"\n");
+                        System.out.println(id+" "+rssi+","+serviceData_Hex);
                     }
 
                 }
@@ -127,9 +164,8 @@ public class MainActivity extends AppCompatActivity {
             BTscanner.stopScan(scanCallback);
         }
 
-        SaveDataToFile.main(beacons_data.toString());
+        SaveDataToFile.main(beacons_data);
     }
-
 
     // Attempts to create the scanner.
     private void init() {

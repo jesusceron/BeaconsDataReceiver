@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class SaveDataToFile {
 
-    public static void main(String beacons_data){
+    public static void main(StringBuffer beacons_data){
         //Log.d("RSSI", Integer.toString(rssi));
         //Log.d("Estimote service data", serviceData_Hex);
         BufferedWriter bw = null;
@@ -22,21 +22,23 @@ public class SaveDataToFile {
                 String dir = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/dataset";
                 Log.d("dir",dir);
 
-                File folder = new File (dir);
-                if (!folder.exists() && !folder.mkdirs()) {
-                    // This should never happen - log handled exception!
+                File folder = new File(dir);
+
+                if (folder.mkdirs()) {
+                    System.out.println("Folder created successfully");
+                } else {
+                    System.out.println("Folder cannot be created");
                 }
 
-                //create file
-                File file = new File(dir, "myData.txt");
-
-                if (!file.exists()) {
-                    file.createNewFile();
+                //create file if it has not been created so far
+                File file = new File(dir, "a.txt");
+                if (file.exists()) {
+                    file.delete();
                 }
 
-                FileWriter fw = new FileWriter(file, true);
+                FileWriter fw = new FileWriter(file);
                 bw = new BufferedWriter(fw);
-                bw.write(beacons_data);
+                bw.write(beacons_data.toString());
                 System.out.println("File written Successfully");
 
             }
