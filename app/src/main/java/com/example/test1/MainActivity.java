@@ -1,6 +1,7 @@
 package com.example.test1;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -34,10 +35,13 @@ public class MainActivity extends AppCompatActivity {
     //private static final ParcelUuid EDDYSTONE_SERVICE_UUID = ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 2;
+    private static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 3;
     private static final ScanSettings SCAN_SETTINGS =
             new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).setReportDelay(0)
                     .build();
 
+    String str = "testing";
+    final StringBuffer beacons_data = new StringBuffer(str);
 
     private List<ScanFilter> scanFilters;
     public BluetoothManager BTmanager;
@@ -77,8 +81,7 @@ public class MainActivity extends AppCompatActivity {
                     if ((serviceData_Hex.substring(0,2).equals("22"))&(serviceData_Hex.substring(18,20).equals("00"))){
                         final int rssi = result.getRssi();
 
-                        SaveDataToFile.main(rssi, serviceData_Hex);
-
+                        beacons_data.append(serviceData_Hex+"\n");
 
                     }
 
@@ -123,6 +126,8 @@ public class MainActivity extends AppCompatActivity {
         if (BTscanner != null) {
             BTscanner.stopScan(scanCallback);
         }
+
+        SaveDataToFile.main(beacons_data.toString());
     }
 
 
@@ -145,7 +150,24 @@ public class MainActivity extends AppCompatActivity {
                 });
                 builder.show();
             }
+
+            if (this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("This app needs external storage access");
+                builder.setMessage("Please grant external storage access so this app can save the data collected");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
+                    }
+                });
+                builder.show();
+            }
         }
+
         BTmanager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         BTadapter = BTmanager.getAdapter();
         if (BTadapter == null) {
