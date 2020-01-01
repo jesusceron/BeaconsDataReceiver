@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private static final char[] HEX = "0123456789ABCDEF".toCharArray();
     // The Eddystone Service UUID, 0xFEAA.
     private static final ParcelUuid ESTIMOTE_SERVICE_UUID = ParcelUuid.fromString("0000FE9A-0000-1000-8000-00805F9B34FB");
-    private static final ParcelUuid EDDYSTONE_SERVICE_UUID = ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
+    //private static final ParcelUuid EDDYSTONE_SERVICE_UUID = ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 2;
     private static final ScanSettings SCAN_SETTINGS =
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
         scanFilters = new ArrayList<>();
         scanFilters.add(new ScanFilter.Builder().setServiceUuid(ESTIMOTE_SERVICE_UUID).build());
-        scanFilters.add(new ScanFilter.Builder().setServiceUuid(EDDYSTONE_SERVICE_UUID).build());
+        //scanFilters.add(new ScanFilter.Builder().setServiceUuid(EDDYSTONE_SERVICE_UUID).build());
 
         scanCallback = new ScanCallback() {
             @Override
@@ -65,25 +65,24 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-
                 //Log.d("OJO", toHexString(scanRecord.getBytes())); mirar advertisment completo
+                byte[] serviceData = result.getScanRecord().getServiceData(ESTIMOTE_SERVICE_UUID);
 
-
-                byte[] serviceData1 = result.getScanRecord().getServiceData(ESTIMOTE_SERVICE_UUID);
-
-                if (serviceData1!=null){
+                if (serviceData!=null){
                     final int rssi = result.getRssi();
                     //validateServiceData(deviceAddress, serviceData);
-                    Log.d("Estimote", toHexString(serviceData1));
+                    String serviceData_Hex = toHexString(serviceData);
+
+                    /* Choose only packets with accelerometer data (frame a)*/
+                    if ((serviceData_Hex.substring(0,2).equals("22"))&(serviceData_Hex.substring(18,20).equals("00"))){
+                        Log.d("Estimote service data", toHexString(serviceData));
+
+
+
+                    }
+
                 }
 
-                byte[] serviceData2 = result.getScanRecord().getServiceData(ESTIMOTE_SERVICE_UUID);
-
-                if (serviceData2!=null){
-                    final int rssi = result.getRssi();
-                    //validateServiceData(deviceAddress, serviceData);
-                    Log.d("Eddystone", toHexString(serviceData2));
-                }
             }
 
             @Override
