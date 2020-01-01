@@ -69,14 +69,15 @@ public class MainActivity extends AppCompatActivity {
                 byte[] serviceData = result.getScanRecord().getServiceData(ESTIMOTE_SERVICE_UUID);
 
                 if (serviceData!=null){
-                    final int rssi = result.getRssi();
+
                     //validateServiceData(deviceAddress, serviceData);
                     String serviceData_Hex = toHexString(serviceData);
 
                     /* Choose only packets with accelerometer data (frame a)*/
                     if ((serviceData_Hex.substring(0,2).equals("22"))&(serviceData_Hex.substring(18,20).equals("00"))){
-                        Log.d("Estimote service data", toHexString(serviceData));
+                        final int rssi = result.getRssi();
 
+                        SaveDataToFile.main(rssi, serviceData_Hex);
 
 
                     }
