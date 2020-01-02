@@ -24,6 +24,7 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     .setReportDelay(0).setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES).build();
     final StringBuffer beacons_data = new StringBuffer();
     final StringBuffer accelerometer_data = new StringBuffer();
+    final StringBuffer gyroscope_data = new StringBuffer();
 
     private List<ScanFilter> scanFilters;
     public BluetoothManager BTmanager;
@@ -54,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
+    private Sensor gyroscope;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +74,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             public void onScanResult(int callbackType, ScanResult result) {
                 ScanRecord scanRecord = result.getScanRecord();
                 final int rssi = result.getRssi();
-                long millis = System.currentTimeMillis();
+
+                long btTimestampMillis = System.currentTimeMillis() -
+                        SystemClock.elapsedRealtime() +
+                        result.getTimestampNanos() / 1000000;
 
                 if (scanRecord == null) {
                     return;
@@ -84,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                     boolean answer = ValidateServiceData.main(serviceData);
                     if (answer) {
-                        beacons_data.append(millis + "," + rssi + "," + toHexString(serviceData) + "\n");
+                        beacons_data.append( btTimestampMillis + "," + rssi + "," + toHexString(serviceData) + "\n");
                     }
 
                     }
@@ -125,10 +131,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onPause();
         if (BTscanner != null) {
             BTscanner.stopScan(scanCallback);
-            sensorManager.unregisterListener(this);
         }
-        SaveDataToFile.main("a", accelerometer_data);
+        sensorManager.unregisterListener(this);
         SaveDataToFile.main("b", beacons_data);
+        SaveDataToFile.main("a", accelerometer_data);
+        SaveDataToFile.main("g", gyroscope_data);
     }
 
     // Attempts to create the scanner.
@@ -184,7 +191,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // success! we have an accelerometer
 
             accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+            sensorManager.registerListener(this, accelerometer, 5000);
+
+
+        } else {
+            // fai! we dont have an accelerometer!
+        }
+        if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
+            // success! we have a gyroscope
+
+            gyroscope= sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
+            sensorManager.registerListener(this, gyroscope, 5000);
 
 
         } else {
@@ -194,12 +211,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event){
-        float acc_x = event.values[0];
-        float acc_y = event.values[1];
-        float acc_z = event.values[2];
-        accelerometer_data.append(event.timestamp+","+acc_x+", "+acc_y+", "+acc_z+ "\n");
 
-        //System.out.println(acc_x+", "+acc_y+", "+acc_z);
+        long sensorTimestampMillis = System.currentTimeMillis() -
+                SystemClock.elapsedRealtime() +
+                event.timestamp / 1000000;
+
+        switch(event.sensor.getType()) {
+            case Sensor.TYPE_ACCELEROMETER:
+                accelerometer_data.append(sensorTimestampMillis + "," + event.values[0] + ", " + event.values[1] + ", " + event.values[2] + "\n");
+                break;
+            case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
+                gyroscope_data.append(sensorTimestampMillis + "," + event.values[0] + ", " + event.values[1] + ", " + event.values[2] + "\n");
+                break;
+        }
     }
 
     @Override
