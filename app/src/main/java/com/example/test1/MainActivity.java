@@ -70,59 +70,19 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                //Log.d("OJO", toHexString(scanRecord.getBytes())); // see the complete advertisment packet
+                //Log.d("OJO", toHexString(scanRecord.getBytes())); // see the complete advertisement packet
                 byte[] serviceData = result.getScanRecord().getServiceData(ESTIMOTE_SERVICE_UUID);
 
                 if (serviceData!=null){
 
-                    //validateServiceData(deviceAddress, serviceData);
-                    String serviceData_Hex = toHexString(serviceData);
+                    boolean answer = ValidateServiceData.main(serviceData);
+                    if (answer) {
+                        beacons_data.append(millis + "," + rssi + "," + toHexString(serviceData) + "\n");
+                    }
 
-                    /* Choose only packets with accelerometer data (frame a)*/
-                    if ((serviceData_Hex.substring(0,2).equals("22"))&(serviceData_Hex.substring(18,20).equals("00"))){
-
-                        int id = 0;
-                        switch (serviceData_Hex.substring(2,18)) {
-
-                            case "46846e6187678448"://Coconut
-                                id = 1;
-                                break;
-                            case "7897b2192cd1330e"://Mint
-                                id = 2;
-                                break;
-                            case "f32a65edd388bbd4"://Ice
-                                id = 3;
-                                break;
-                            case "c7f00010b342cf9e"://Blueberry
-                                id = 4;
-                                break;
-                            case "992074a3a75b01dd"://P2
-                                id = 5;
-                                break;
-                            case "eeaf86657d2312d5"://P1
-                                id = 6;
-                                break;
-                            case "7bb8ba833ded2db9"://B2
-                                id = 7;
-                                break;
-                            case "3e03d2aaf4265aa5"://B1
-                                id = 8;
-                                break;
-                            case "3c53d934182ed091"://G2
-                                id = 9;
-                                break;
-                            case "318da9517131bfab"://G1
-                                id = 10;
-                                break;
-                        }
-
-                        beacons_data.append(id+", "+millis+","+rssi+","+serviceData_Hex+"\n");
-                        System.out.println(id+" "+rssi+","+serviceData_Hex);
                     }
 
                 }
-
-            }
 
             @Override
             public void onScanFailed(int errorCode) {
