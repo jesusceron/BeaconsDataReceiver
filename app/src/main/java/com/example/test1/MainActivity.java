@@ -17,7 +17,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.icu.util.Calendar;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
@@ -28,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener{
 
     private static final char[] HEX = "0123456789ABCDEF".toCharArray();
     // The Eddystone Service UUID, 0xFEAA.
@@ -41,12 +44,16 @@ public class MainActivity extends AppCompatActivity {
             new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                     .setReportDelay(0).setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES).build();
     final StringBuffer beacons_data = new StringBuffer();
+    final StringBuffer accelerometer_data = new StringBuffer();
 
     private List<ScanFilter> scanFilters;
     public BluetoothManager BTmanager;
     public BluetoothAdapter BTadapter;
     public BluetoothLeScanner BTscanner;
     public ScanCallback scanCallback;
+
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,8 +112,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-
-
     }
 
     public void onResume(){
@@ -120,9 +125,10 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         if (BTscanner != null) {
             BTscanner.stopScan(scanCallback);
+            sensorManager.unregisterListener(this);
         }
-
-        SaveDataToFile.main(beacons_data);
+        SaveDataToFile.main("a", accelerometer_data);
+        SaveDataToFile.main("b", beacons_data);
     }
 
     // Attempts to create the scanner.
@@ -172,6 +178,33 @@ public class MainActivity extends AppCompatActivity {
         } else {
             BTscanner = BTadapter.getBluetoothLeScanner();
         }
+
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
+            // success! we have an accelerometer
+
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+
+
+        } else {
+            // fai! we dont have an accelerometer!
+        }
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event){
+        float acc_x = event.values[0];
+        float acc_y = event.values[1];
+        float acc_z = event.values[2];
+        accelerometer_data.append(event.timestamp+","+acc_x+", "+acc_y+", "+acc_z+ "\n");
+
+        //System.out.println(acc_x+", "+acc_y+", "+acc_z);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+
     }
 
     // Pops an AlertDialog that quits the app on OK.

@@ -10,10 +10,16 @@ import java.io.IOException;
 
 public class SaveDataToFile {
 
-    public static void main(StringBuffer beacons_data){
+    public static void main(String type, StringBuffer beacons_data){
         //Log.d("RSSI", Integer.toString(rssi));
         //Log.d("Estimote service data", serviceData_Hex);
         BufferedWriter bw = null;
+        String file_name = "";
+        if(type.equals("a")) {
+            file_name = "a.txt";
+        }else {
+            file_name = "b.txt";
+        }
         try {
 
             if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
@@ -31,7 +37,8 @@ public class SaveDataToFile {
                 }
 
                 //create file if it has not been created so far
-                File file = new File(dir, "a.txt");
+
+                File file = new File(dir, file_name);
                 if (file.exists()) {
                     file.delete();
                 }
