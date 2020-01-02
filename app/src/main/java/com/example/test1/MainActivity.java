@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                             case "7897b2192cd1330e"://Mint
                                 id = 2;
                                 break;
-                            case "F32a65edd388bbd4"://Ice MAL
+                            case "f32a65edd388bbd4"://Ice
                                 id = 3;
                                 break;
                             case "c7f00010b342cf9e"://Blueberry
