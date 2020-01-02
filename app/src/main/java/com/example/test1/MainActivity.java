@@ -38,10 +38,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 2;
     private static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 3;
     private static final ScanSettings SCAN_SETTINGS =
-            new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).setReportDelay(0)
-                    .build();
-
-    //String str = "testing";
+            new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    .setReportDelay(0).setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES).build();
     final StringBuffer beacons_data = new StringBuffer();
 
     private List<ScanFilter> scanFilters;
@@ -65,14 +63,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
                 ScanRecord scanRecord = result.getScanRecord();
-
+                final int rssi = result.getRssi();
                 long millis = System.currentTimeMillis();
 
                 if (scanRecord == null) {
                     return;
                 }
 
-                //Log.d("OJO", toHexString(scanRecord.getBytes())); mirar advertisment completo
+                //Log.d("OJO", toHexString(scanRecord.getBytes())); // see the complete advertisment packet
                 byte[] serviceData = result.getScanRecord().getServiceData(ESTIMOTE_SERVICE_UUID);
 
                 if (serviceData!=null){
@@ -82,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
                     /* Choose only packets with accelerometer data (frame a)*/
                     if ((serviceData_Hex.substring(0,2).equals("22"))&(serviceData_Hex.substring(18,20).equals("00"))){
-                        final int rssi = result.getRssi();
+
                         int id = 0;
                         switch (serviceData_Hex.substring(2,18)) {
 
