@@ -60,10 +60,18 @@ public class MainActivity extends AppCompatActivity {
     private Sensor accelerometer;
     private Sensor gyroscope;
 
+    private Button startButton;
+    private Button stopButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        startButton = findViewById(R.id.start_button);
+        stopButton = findViewById(R.id.stop_button);
+        startButton.setOnClickListener(new buttonClick());
+        stopButton.setOnClickListener(new buttonClick());
 
         //final String p_ID = "";
         init();
@@ -91,65 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         };
-        final Button start_button = findViewById(R.id.start_button);
-        final Button stop_button = findViewById(R.id.stop_button);
-        final TextView participant_ID = findViewById(R.id.participant_ID);
 
-        stop_button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Code here executes on main thread after user presses button
-                if (BTscanner != null) {
-                    BTscanner.stopScan(scanCallback);
-                }
-                sensorManager.unregisterListener(mSensorListener);
-                SaveDataToFile.main("b", beacons_data);
-                SaveDataToFile.main("a", accelerometer_data);
-                SaveDataToFile.main("g", gyroscope_data);
-
-                beacons_data.delete(0,beacons_data.length());
-                accelerometer_data.delete(0,accelerometer_data.length());
-                gyroscope_data.delete(0,gyroscope_data.length());
-
-                start_button.setVisibility(View.VISIBLE);
-                stop_button.setVisibility(View.INVISIBLE);
-            }
-        });
-
-        start_button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Code here executes on main thread after user presses button
-
-                //p_ID = participant_ID.getText();
-
-                if (BTscanner != null) {
-
-                    sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-                    if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
-                        // success! we have an accelerometer
-
-                        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-                        sensorManager.registerListener(mSensorListener, accelerometer, 5000);
-
-
-                    } else {
-                        // fai! we dont have an accelerometer!
-                    }
-                    if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
-                        // success! we have a gyroscope
-
-                        gyroscope= sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
-                        sensorManager.registerListener(mSensorListener, gyroscope, 5000);
-
-
-                    } else {
-                        // fai! we dont have an accelerometer!
-                    }
-                    BTscanner.startScan(scanFilters,SCAN_SETTINGS,scanCallback);
-                }
-                start_button.setVisibility(View.INVISIBLE);
-                stop_button.setVisibility(View.VISIBLE);
-            }
-        });
 
         scanFilters = new ArrayList<>();
         scanFilters.add(new ScanFilter.Builder().setServiceUuid(ESTIMOTE_SERVICE_UUID).build());
@@ -205,6 +155,67 @@ public class MainActivity extends AppCompatActivity {
             }
         };
     }
+
+    private void startButtonClicked(){
+        if (BTscanner != null) {
+
+            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
+                // success! we have an accelerometer
+
+                accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+                sensorManager.registerListener(mSensorListener, accelerometer, 5000);
+
+
+            } else {
+                // fai! we dont have an accelerometer!
+            }
+            if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
+                // success! we have a gyroscope
+
+                gyroscope= sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
+                sensorManager.registerListener(mSensorListener, gyroscope, 5000);
+
+
+            } else {
+                // fai! we dont have an accelerometer!
+            }
+            BTscanner.startScan(scanFilters,SCAN_SETTINGS,scanCallback);
+        }
+        startButton.setVisibility(View.INVISIBLE);
+        stopButton.setVisibility(View.VISIBLE);
+    }
+    private void stopButtonClicked(){
+        if (BTscanner != null) {
+            BTscanner.stopScan(scanCallback);
+        }
+        sensorManager.unregisterListener(mSensorListener);
+        SaveDataToFile.main("b", beacons_data);
+        SaveDataToFile.main("a", accelerometer_data);
+        SaveDataToFile.main("g", gyroscope_data);
+
+        beacons_data.delete(0,beacons_data.length());
+        accelerometer_data.delete(0,accelerometer_data.length());
+        gyroscope_data.delete(0,gyroscope_data.length());
+
+        startButton.setVisibility(View.VISIBLE);
+        stopButton.setVisibility(View.INVISIBLE);
+    }
+
+    class buttonClick implements View.OnClickListener{
+        @Override
+        public void onClick(View v){
+            switch (v.getId()) {
+                case R.id.start_button:
+                    startButtonClicked();
+                    break;
+                case R.id.stop_button:
+                    stopButtonClicked();
+                    break;
+            }
+        }
+    }
+
 
     public void onResume(){
         super.onResume();
