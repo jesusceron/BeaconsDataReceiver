@@ -2,28 +2,29 @@ package com.example.test1;
 
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class SaveDataToFile {
+class SaveDataToFile {
 
-    public static void main(String type, StringBuffer data){
+    static void main(String participant_ID, String type, StringBuffer data){
         //Log.d("RSSI", Integer.toString(rssi));
         //Log.d("Estimote service data", serviceData_Hex);
         BufferedWriter bw = null;
         String file_name = "";
         switch (type){
             case "a":
-                file_name = "a.txt";
+                file_name = participant_ID+"_a.txt";
                 break;
             case "g":
-                file_name = "g.txt";
+                file_name = participant_ID+"_g.txt";
                 break;
             case "b":
-                file_name = "b.txt";
+                file_name = participant_ID+"_b.txt";
                 break;
         }
 
@@ -31,6 +32,7 @@ public class SaveDataToFile {
 
             if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
                 //handle case of no SDCARD present
+                Log.e("error", "no SD");
             } else {
                 String dir = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/dataset";
                 Log.d("dir",dir);
@@ -70,4 +72,8 @@ public class SaveDataToFile {
         }
 
     }
+/*    private void logErrorAndShowToast(String message) {
+        Toast.makeText(this.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+        Log.e("error", message);
+    }*/
 }

@@ -20,20 +20,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="ID"
-            android:inputType="numberDecimal" />
+            android:hint="@string/id"
+            android:inputType="numberDecimal"
+            android:autofillHints="" />
 
         <Button
             android:id="@+id/start_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="START" />
+            android:text="@string/start" />
 
         <Button
             android:id="@+id/stop_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="STOP"
+            android:text="@string/stop"
             android:visibility="invisible" />
 
     </LinearLayout>

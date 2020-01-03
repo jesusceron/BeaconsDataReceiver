@@ -2,4 +2,7 @@
     <string name="app_name">Test1</string>
     <string name="ble_not_supported">Bluetooth not supported</string>
     <string name="error_bluetooth_not_supported">Bluetooth not supported</string>
+    <string name="id">ID</string>
+    <string name="start">START</string>
+    <string name="stop">STOP</string>
 </resources>

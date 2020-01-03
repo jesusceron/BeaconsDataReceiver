@@ -20,7 +20,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
@@ -57,17 +56,20 @@ public class MainActivity extends AppCompatActivity {
 
     public SensorEventListener mSensorListener;
     private SensorManager sensorManager;
-    private Sensor accelerometer;
-    private Sensor gyroscope;
+    public Sensor accelerometer;
+    public Sensor gyroscope;
 
     private Button startButton;
     private Button stopButton;
+    private TextView IDTextView;
+    private String participant_ID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        IDTextView = findViewById(R.id.participant_ID);
         startButton = findViewById(R.id.start_button);
         stopButton = findViewById(R.id.stop_button);
         startButton.setOnClickListener(new buttonClick());
@@ -86,10 +88,16 @@ public class MainActivity extends AppCompatActivity {
 
                 switch(sensorEvent.sensor.getType()) {
                     case Sensor.TYPE_ACCELEROMETER:
-                        accelerometer_data.append(sensorTimestampMillis + "," + sensorEvent.values[0] + ", " + sensorEvent.values[1] + ", " + sensorEvent.values[2] + "\n");
+                        accelerometer_data.append(sensorTimestampMillis).append(",")
+                                .append(sensorEvent.values[0]).append(", ")
+                                .append(sensorEvent.values[1]).append(", ")
+                                .append(sensorEvent.values[2]).append("\n");
                         break;
                     case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
-                        gyroscope_data.append(sensorTimestampMillis + "," + sensorEvent.values[0] + ", " + sensorEvent.values[1] + ", " + sensorEvent.values[2] + "\n");
+                        gyroscope_data.append(sensorTimestampMillis).append(",")
+                                .append(sensorEvent.values[0]).append(", ")
+                                .append(sensorEvent.values[1]).append(", ")
+                                .append(sensorEvent.values[2]).append("\n");
                         break;
                 }
             }
@@ -126,12 +134,14 @@ public class MainActivity extends AppCompatActivity {
 
                     boolean answer = ValidateServiceData.main(serviceData);
                     if (answer) {
-                        beacons_data.append( btTimestampMillis + "," + rssi + "," + toHexString(serviceData) + "\n");
-                    }
-
+                        beacons_data.append( btTimestampMillis ).append(",")
+                                .append(rssi).append(",").append(toHexString(serviceData))
+                                .append("\n");
                     }
 
                 }
+
+            }
 
             @Override
             public void onScanFailed(int errorCode) {
@@ -157,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startButtonClicked(){
+        participant_ID = IDTextView.getText().toString();
         if (BTscanner != null) {
 
             sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -168,9 +179,10 @@ public class MainActivity extends AppCompatActivity {
 
 
             } else {
-                // fai! we dont have an accelerometer!
+                // fail! we dont have an accelerometer!
+                showFinishingAlertDialog("Accelerometer Error", "Accelerometer not detected on device");
             }
-            if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
+            if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED) != null) {
                 // success! we have a gyroscope
 
                 gyroscope= sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
@@ -178,7 +190,8 @@ public class MainActivity extends AppCompatActivity {
 
 
             } else {
-                // fai! we dont have an accelerometer!
+                // fail! we dont have a gyroscope!
+                showFinishingAlertDialog("Gyroscope Error", "Gyroscope not detected on device");
             }
             BTscanner.startScan(scanFilters,SCAN_SETTINGS,scanCallback);
         }
@@ -190,9 +203,9 @@ public class MainActivity extends AppCompatActivity {
             BTscanner.stopScan(scanCallback);
         }
         sensorManager.unregisterListener(mSensorListener);
-        SaveDataToFile.main("b", beacons_data);
-        SaveDataToFile.main("a", accelerometer_data);
-        SaveDataToFile.main("g", gyroscope_data);
+        SaveDataToFile.main(participant_ID,"b", beacons_data);
+        SaveDataToFile.main(participant_ID,"a", accelerometer_data);
+        SaveDataToFile.main(participant_ID,"g", gyroscope_data);
 
         beacons_data.delete(0,beacons_data.length());
         accelerometer_data.delete(0,accelerometer_data.length());
@@ -230,39 +243,39 @@ public class MainActivity extends AppCompatActivity {
     // Attempts to create the scanner.
     private void init() {
         // New Android M+ permission check requirement.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("This app needs coarse location access");
-                builder.setMessage("Please grant coarse location access so this app can scan for beacons");
-                builder.setPositiveButton(android.R.string.ok, null);
-                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                PERMISSION_REQUEST_COARSE_LOCATION);
-                    }
-                });
-                builder.show();
-            }
 
-            if (this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("This app needs external storage access");
-                builder.setMessage("Please grant external storage access so this app can save the data collected");
-                builder.setPositiveButton(android.R.string.ok, null);
-                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
-                    }
-                });
-                builder.show();
-            }
+        if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("This app needs coarse location access");
+            builder.setMessage("Please grant coarse location access so this app can scan for beacons");
+            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                            PERMISSION_REQUEST_COARSE_LOCATION);
+                }
+            });
+            builder.show();
         }
+
+        if (this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("This app needs external storage access");
+            builder.setMessage("Please grant external storage access so this app can save the data collected");
+            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
+                }
+            });
+            builder.show();
+        }
+
 
         BTmanager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         BTadapter = BTmanager.getAdapter();
