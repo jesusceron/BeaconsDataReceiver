@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener{
+public class MainActivity extends AppCompatActivity{
 
     private static final char[] HEX = "0123456789ABCDEF".toCharArray();
     // The Eddystone Service UUID, 0xFEAA.
@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public BluetoothManager BTmanager;
     public BluetoothAdapter BTadapter;
     public BluetoothLeScanner BTscanner;
+    int count_beacons = 0;
     //scanFilters.add(new ScanFilter.Builder().setServiceUuid(EDDYSTONE_SERVICE_UUID).build());
 
     public ScanCallback scanCallback = new ScanCallback() {
@@ -80,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     beacons_data.append( btTimestampMillis ).append(",")
                             .append(rssi).append(",").append(toHexString(serviceData))
                             .append("\n");
+                    count_beacons++;
                 }
 
             }
@@ -111,6 +113,42 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager sensorManager;
     public Sensor accelerometer;
     public Sensor gyroscope;
+    int count_acc =0;
+    int count_gyr =0;
+
+    public SensorEventListener mSensorListener = new SensorEventListener() {
+
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            long sensorTimestampMillis = System.currentTimeMillis() -
+                    SystemClock.elapsedRealtime() +
+                    sensorEvent.timestamp / 1000000;
+
+            switch(sensorEvent.sensor.getType()) {
+                case Sensor.TYPE_ACCELEROMETER:
+                    accelerometer_data.append(sensorTimestampMillis).append(",")
+                            .append(sensorEvent.values[0]).append(", ")
+                            .append(sensorEvent.values[1]).append(", ")
+                            .append(sensorEvent.values[2]).append("\n");
+                    count_acc++;
+                    System.out.println(count_acc);
+                    break;
+                case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
+                    gyroscope_data.append(sensorTimestampMillis).append(",")
+                            .append(sensorEvent.values[0]).append(", ")
+                            .append(sensorEvent.values[1]).append(", ")
+                            .append(sensorEvent.values[2]).append("\n");
+                    count_gyr++;
+                    //System.out.println(count_gyr);
+                    break;
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+
+        }
+    };
 
     private Button startButton;
     private Button stopButton;
@@ -147,14 +185,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
                 // success! we have an accelerometer
-                sensorManager.registerListener(this, accelerometer, 5000);
+                sensorManager.registerListener(mSensorListener, accelerometer, 5000);
             } else {
                 // fail! we dont have an accelerometer!
                 showFinishingAlertDialog("Accelerometer Error", "Accelerometer not detected on device");
             }
             if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED) != null) {
                 // success! we have a gyroscope
-                sensorManager.registerListener(this, gyroscope, 5000);
+                sensorManager.registerListener(mSensorListener, gyroscope, 5000);
             } else {
                 // fail! we dont have a gyroscope!
                 showFinishingAlertDialog("Gyroscope Error", "Gyroscope not detected on device");
@@ -165,49 +203,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         stopButton.setVisibility(View.VISIBLE);
     }
     private void stopButtonClicked(){
+        System.out.println("FINAL: "+count_beacons+" "+count_acc+" "+count_gyr);
         if (BTscanner != null) {
             BTscanner.stopScan(scanCallback);
         }
-        sensorManager.unregisterListener(this);
-        SaveDataToFile.main(participant_ID,"b", beacons_data);
+        sensorManager.unregisterListener(mSensorListener);
+
         SaveDataToFile.main(participant_ID,"a", accelerometer_data);
-        SaveDataToFile.main(participant_ID,"g", gyroscope_data);
+        //SaveDataToFile.main(participant_ID,"g", gyroscope_data);
+        SaveDataToFile.main(participant_ID,"b", beacons_data);
 
-/*        beacons_data.delete(0,beacons_data.length());
-        accelerometer_data.delete(0,accelerometer_data.length());
-        gyroscope_data.delete(0,gyroscope_data.length());*/
+/*        if (ans) {
+            beacons_data.delete(0, beacons_data.length());
+            accelerometer_data.delete(0, accelerometer_data.length());
+            gyroscope_data.delete(0, gyroscope_data.length());
 
-        startButton.setVisibility(View.VISIBLE);
-        stopButton.setVisibility(View.INVISIBLE);
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent sensorEvent) {
-        long sensorTimestampMillis = System.currentTimeMillis() -
-                SystemClock.elapsedRealtime() +
-                sensorEvent.timestamp / 1000000;
-
-        switch(sensorEvent.sensor.getType()) {
-            case Sensor.TYPE_ACCELEROMETER:
-                accelerometer_data.append(sensorTimestampMillis).append(",")
-                        .append(sensorEvent.values[0]).append(", ")
-                        .append(sensorEvent.values[1]).append(", ")
-                        .append(sensorEvent.values[2]).append("\n");
-                //System.out.println("ACC: "+sensorEvent.values);
-                break;
-            case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
-                gyroscope_data.append(sensorTimestampMillis).append(",")
-                        .append(sensorEvent.values[0]).append(", ")
-                        .append(sensorEvent.values[1]).append(", ")
-                        .append(sensorEvent.values[2]).append("\n");
-                //System.out.println("GYR: "+sensorEvent.values);
-                break;
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
-
+            startButton.setVisibility(View.VISIBLE);
+            stopButton.setVisibility(View.INVISIBLE);
+        }*/
     }
 
     class buttonClick implements View.OnClickListener{

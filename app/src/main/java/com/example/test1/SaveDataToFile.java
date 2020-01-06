@@ -2,6 +2,7 @@ package com.example.test1;
 
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -48,29 +49,20 @@ class SaveDataToFile {
 
                 File file = new File(dir, file_name);
                 if (file.exists()) {
-                    file_name = participant_ID+participant_ID+participant_ID+"_a.txt";
-                    file = new File(dir, file_name);
+                    file.delete();
                 }
 
                 FileWriter fw = new FileWriter(file);
                 bw = new BufferedWriter(fw);
-                bw.write(data.toString());
+                bw.append(data);
+                bw.flush();
+                bw.close();
                 System.out.println("File written Successfully");
 
             }
         }catch (IOException ioe) {
             ioe.printStackTrace();
         }
-        finally
-        {
-            try{
-                if(bw!=null)
-                    bw.close();
-            }catch(Exception ex){
-                System.out.println("Error in closing the BufferedWriter"+ex);
-            }
-        }
-
     }
 /*    private void logErrorAndShowToast(String message) {
         Toast.makeText(this.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
