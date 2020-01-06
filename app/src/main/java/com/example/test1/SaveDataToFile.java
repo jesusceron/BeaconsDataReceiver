@@ -2,7 +2,6 @@ package com.example.test1;
 
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -49,7 +48,8 @@ class SaveDataToFile {
 
                 File file = new File(dir, file_name);
                 if (file.exists()) {
-                    file.delete();
+                    file_name = participant_ID+participant_ID+participant_ID+"_a.txt";
+                    file = new File(dir, file_name);
                 }
 
                 FileWriter fw = new FileWriter(file);
