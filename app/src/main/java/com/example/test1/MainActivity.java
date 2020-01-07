@@ -54,6 +54,8 @@ public class MainActivity extends AppCompatActivity{
     public BluetoothLeScanner BTscanner;
     int count_beacons = 0;
     int count_beacons_total = 0;
+
+    boolean finish_data_saving;
     //scanFilters.add(new ScanFilter.Builder().setServiceUuid(EDDYSTONE_SERVICE_UUID).build());
 
     public ScanCallback scanCallback = new ScanCallback() {
@@ -79,15 +81,15 @@ public class MainActivity extends AppCompatActivity{
                 if (answer) {
                     beacons_data.append( btTimestampMillis ).append(",")
                             .append(rssi).append(",").append(toHexString(serviceData))
-                            .append("\n");
+                            .append(System.lineSeparator());
                     count_beacons++;
                     count_beacons_total++;
                     if (count_beacons>=4000) {
                         count_beacons = 0;
                         StringBuffer beacons_data_save = beacons_data;
 
-                        System.out.println("Sale: "+ beacons_data_save.length());
-                        SaveDataToFile.main(participant_ID, "g", beacons_data_save);
+                        System.out.println("Sale beacons");
+                        SaveDataToFile.main(participant_ID, "b", beacons_data_save);
 
                         beacons_data.delete(0,beacons_data.length());
                     }
@@ -135,19 +137,25 @@ public class MainActivity extends AppCompatActivity{
                     SystemClock.elapsedRealtime() +
                     sensorEvent.timestamp / 1000000;
 
+/*            if (finish_data_saving == true){
+
+                SaveDataToFile.main(participant_ID, "a", accelerometer_data);
+                SaveDataToFile.main(participant_ID, "g", gyroscope_data);
+            }*/
+
             switch(sensorEvent.sensor.getType()) {
                 case Sensor.TYPE_ACCELEROMETER:
                     accelerometer_data.append(sensorTimestampMillis).append(",")
                             .append(sensorEvent.values[0]).append(", ")
                             .append(sensorEvent.values[1]).append(", ")
-                            .append(sensorEvent.values[2]).append("\n");
+                            .append(sensorEvent.values[2]).append(System.lineSeparator());
                     count_acc++;
                     count_acc_total++;
                     if (count_acc>=4000) {
                         count_acc = 0;
                         StringBuffer accelerometer_data_save = accelerometer_data;
 
-                        System.out.println("Sale: "+ accelerometer_data_save.length());
+                        System.out.println("Sale acc");
                         SaveDataToFile.main(participant_ID, "a", accelerometer_data_save);
 
                         accelerometer_data.delete(0,accelerometer_data.length());
@@ -158,14 +166,14 @@ public class MainActivity extends AppCompatActivity{
                     gyroscope_data.append(sensorTimestampMillis).append(",")
                             .append(sensorEvent.values[0]).append(", ")
                             .append(sensorEvent.values[1]).append(", ")
-                            .append(sensorEvent.values[2]).append("\n");
+                            .append(sensorEvent.values[2]).append(System.lineSeparator());
                     count_gyr++;
                     count_gyr_total++;
                     if (count_gyr>=4000) {
                         count_gyr = 0;
                         StringBuffer gyroscope_data_save = gyroscope_data;
 
-                        System.out.println("Sale: "+ gyroscope_data_save.length());
+                        System.out.println("Sale gyro");
                         SaveDataToFile.main(participant_ID, "g", gyroscope_data_save);
 
                         gyroscope_data.delete(0,gyroscope_data.length());
@@ -205,6 +213,7 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void startButtonClicked(){
+        finish_data_saving = false;
         participant_ID = IDTextView.getText().toString();
         if (BTscanner != null) {
 
@@ -218,16 +227,20 @@ public class MainActivity extends AppCompatActivity{
     }
     private void stopButtonClicked(){
 
+        finish_data_saving = true;
+
         if (BTscanner != null) {
             BTscanner.stopScan(scanCallback);
         }
         sensorManager.unregisterListener(mSensorListener);
+        System.out.println("Sale b");
+        SaveDataToFile.main(participant_ID,"b", beacons_data);
+
 
         System.out.println("FINAL: "+count_beacons_total+" "+count_acc_total+" "+count_gyr_total);
-        //System.out.println("sale " + accelerometer_data.length()+ " " + gyroscope_data.length() + " " + beacons_data.length());
+        System.out.println("sale acc y gyr");
         SaveDataToFile.main(participant_ID,"a", accelerometer_data);
         SaveDataToFile.main(participant_ID,"g", gyroscope_data);
-        SaveDataToFile.main(participant_ID,"b", beacons_data);
 
         beacons_data.delete(0, beacons_data.length());
         accelerometer_data.delete(0, accelerometer_data.length());

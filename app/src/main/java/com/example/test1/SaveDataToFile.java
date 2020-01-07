@@ -34,14 +34,14 @@ class SaveDataToFile {
                     Log.e("error", "no SD");
                 } else {
                     String dir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/dataset";
-                    Log.d("dir", dir);
+                    //Log.d("dir", dir);
 
                     File folder = new File(dir);
 
                     if (folder.mkdirs()) {
-                        System.out.println("Folder created successfully");
+                        //System.out.println("Folder created successfully");
                     } else {
-                        System.out.println("Folder cannot be created");
+                        //System.out.println("Folder cannot be created");
                     }
 
                     //create file if it has not been created so far
@@ -51,22 +51,17 @@ class SaveDataToFile {
                         file.delete();
                     }*/
 
-                    System.out.println("llega " + data.length());
+                    System.out.println("llega " + type);
 
                     FileWriter filerWriter = new FileWriter(file, true);
-                    bw = new BufferedWriter(filerWriter);
-                    bw.write(data.toString());
+                    BufferedWriter bufWriter = new BufferedWriter(filerWriter);
+                    bufWriter.append(data);
+                    bufWriter.close();
                     filerWriter.close();
 
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();
-            }finally {                       // always close the file
-                if (bw != null) try {
-                    bw.close();
-                } catch (IOException ioe2) {
-                    // just ignore it
-                }
             }
         }
     }
