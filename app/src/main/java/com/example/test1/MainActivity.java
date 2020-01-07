@@ -1,6 +1,8 @@
 package com.example.test1;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+
 import android.Manifest;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -52,141 +54,10 @@ public class MainActivity extends AppCompatActivity{
     public BluetoothManager BTmanager;
     public BluetoothAdapter BTadapter;
     public BluetoothLeScanner BTscanner;
+    private SensorManager sensorManager;
     int count_beacons = 0;
     int count_beacons_total = 0;
-
-    boolean finish_data_saving;
     //scanFilters.add(new ScanFilter.Builder().setServiceUuid(EDDYSTONE_SERVICE_UUID).build());
-
-    public ScanCallback scanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            ScanRecord scanRecord = result.getScanRecord();
-            final int rssi = result.getRssi();
-
-            long btTimestampMillis = System.currentTimeMillis() -
-                    SystemClock.elapsedRealtime() +
-                    result.getTimestampNanos() / 1000000;
-
-            if (scanRecord == null) {
-                return;
-            }
-
-            //Log.d("OJO", toHexString(scanRecord.getBytes())); // see the complete advertisement packet
-            byte[] serviceData = Objects.requireNonNull(result.getScanRecord()).getServiceData(ESTIMOTE_SERVICE_UUID);
-
-            if (serviceData!=null){
-
-                boolean answer = ValidateServiceData.main(serviceData);
-                if (answer) {
-                    beacons_data.append( btTimestampMillis ).append(",")
-                            .append(rssi).append(",").append(toHexString(serviceData))
-                            .append(System.lineSeparator());
-                    count_beacons++;
-                    count_beacons_total++;
-                    if (count_beacons>=4000) {
-                        count_beacons = 0;
-                        StringBuffer beacons_data_save = beacons_data;
-
-                        System.out.println("Sale beacons");
-                        SaveDataToFile.main(participant_ID, "b", beacons_data_save);
-
-                        beacons_data.delete(0,beacons_data.length());
-                    }
-                }
-
-            }
-
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            switch (errorCode) {
-                case SCAN_FAILED_ALREADY_STARTED:
-                    logErrorAndShowToast("SCAN_FAILED_ALREADY_STARTED");
-                    break;
-                case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
-                    logErrorAndShowToast("SCAN_FAILED_APPLICATION_REGISTRATION_FAILED");
-                    break;
-                case SCAN_FAILED_FEATURE_UNSUPPORTED:
-                    logErrorAndShowToast("SCAN_FAILED_FEATURE_UNSUPPORTED");
-                    break;
-                case SCAN_FAILED_INTERNAL_ERROR:
-                    logErrorAndShowToast("SCAN_FAILED_INTERNAL_ERROR");
-                    break;
-                default:
-                    logErrorAndShowToast("Scan failed, unknown error code");
-                    break;
-            }
-        }
-    };
-
-    private SensorManager sensorManager;
-    public Sensor accelerometer;
-    public Sensor gyroscope;
-    int count_acc =0;
-    int count_gyr =0;
-    int count_acc_total =0;
-    int count_gyr_total =0;
-
-    public SensorEventListener mSensorListener = new SensorEventListener() {
-
-        @Override
-        public void onSensorChanged(SensorEvent sensorEvent) {
-            long sensorTimestampMillis = System.currentTimeMillis() -
-                    SystemClock.elapsedRealtime() +
-                    sensorEvent.timestamp / 1000000;
-
-/*            if (finish_data_saving == true){
-
-                SaveDataToFile.main(participant_ID, "a", accelerometer_data);
-                SaveDataToFile.main(participant_ID, "g", gyroscope_data);
-            }*/
-
-            switch(sensorEvent.sensor.getType()) {
-                case Sensor.TYPE_ACCELEROMETER:
-                    accelerometer_data.append(sensorTimestampMillis).append(",")
-                            .append(sensorEvent.values[0]).append(", ")
-                            .append(sensorEvent.values[1]).append(", ")
-                            .append(sensorEvent.values[2]).append(System.lineSeparator());
-                    count_acc++;
-                    count_acc_total++;
-                    if (count_acc>=4000) {
-                        count_acc = 0;
-                        StringBuffer accelerometer_data_save = accelerometer_data;
-
-                        System.out.println("Sale acc");
-                        SaveDataToFile.main(participant_ID, "a", accelerometer_data_save);
-
-                        accelerometer_data.delete(0,accelerometer_data.length());
-                    }
-
-                    break;
-                case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
-                    gyroscope_data.append(sensorTimestampMillis).append(",")
-                            .append(sensorEvent.values[0]).append(", ")
-                            .append(sensorEvent.values[1]).append(", ")
-                            .append(sensorEvent.values[2]).append(System.lineSeparator());
-                    count_gyr++;
-                    count_gyr_total++;
-                    if (count_gyr>=4000) {
-                        count_gyr = 0;
-                        StringBuffer gyroscope_data_save = gyroscope_data;
-
-                        System.out.println("Sale gyro");
-                        SaveDataToFile.main(participant_ID, "g", gyroscope_data_save);
-
-                        gyroscope_data.delete(0,gyroscope_data.length());
-                    }
-                    break;
-            }
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int i) {
-
-        }
-    };
 
     private Button startButton;
     private Button stopButton;
@@ -204,47 +75,35 @@ public class MainActivity extends AppCompatActivity{
         startButton.setOnClickListener(new buttonClick());
         stopButton.setOnClickListener(new buttonClick());
 
-        //final String p_ID = "";
         init();
 
-        scanFilters = new ArrayList<>();
-        scanFilters.add(new ScanFilter.Builder().setServiceUuid(ESTIMOTE_SERVICE_UUID).build());
+/*        scanFilters = new ArrayList<>();
+        scanFilters.add(new ScanFilter.Builder().setServiceUuid(ESTIMOTE_SERVICE_UUID).build());*/
 
     }
 
     private void startButtonClicked(){
-        finish_data_saving = false;
+
         participant_ID = IDTextView.getText().toString();
-        if (BTscanner != null) {
+
+        Intent serviceIntent = new Intent(this, MyService.class);
+        serviceIntent.putExtra("inputExtra", participant_ID);
+
+        ContextCompat.startForegroundService(this, serviceIntent);
+/*        if (BTscanner != null) {
 
             sensorManager.registerListener(mSensorListener, accelerometer, 5000);
             sensorManager.registerListener(mSensorListener, gyroscope, 5000);
             BTscanner.startScan(scanFilters,SCAN_SETTINGS,scanCallback);
 
-        }
+        }*/
         startButton.setVisibility(View.INVISIBLE);
         stopButton.setVisibility(View.VISIBLE);
     }
     private void stopButtonClicked(){
 
-        finish_data_saving = true;
-
-        if (BTscanner != null) {
-            BTscanner.stopScan(scanCallback);
-        }
-        sensorManager.unregisterListener(mSensorListener);
-        System.out.println("Sale b");
-        SaveDataToFile.main(participant_ID,"b", beacons_data);
-
-
-        System.out.println("FINAL: "+count_beacons_total+" "+count_acc_total+" "+count_gyr_total);
-        System.out.println("sale acc y gyr");
-        SaveDataToFile.main(participant_ID,"a", accelerometer_data);
-        SaveDataToFile.main(participant_ID,"g", gyroscope_data);
-
-        beacons_data.delete(0, beacons_data.length());
-        accelerometer_data.delete(0, accelerometer_data.length());
-        gyroscope_data.delete(0, gyroscope_data.length());
+        Intent serviceIntent = new Intent(this, MyService.class);
+        stopService(serviceIntent);
 
         startButton.setVisibility(View.VISIBLE);
         stopButton.setVisibility(View.INVISIBLE);
@@ -276,6 +135,7 @@ public class MainActivity extends AppCompatActivity{
 
     }
 
+
     // Attempts to create the scanner.
     private void init() {
         // New Android M+ permission check requirement.
@@ -290,7 +150,7 @@ public class MainActivity extends AppCompatActivity{
                 @Override
                 public void onDismiss(DialogInterface dialog) {
                     requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                            PERMISSION_REQUEST_COARSE_LOCATION);
+                    PERMISSION_REQUEST_COARSE_LOCATION);
                 }
             });
             builder.show();
@@ -306,7 +166,7 @@ public class MainActivity extends AppCompatActivity{
                 @Override
                 public void onDismiss(DialogInterface dialog) {
                     requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
+                    PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
                 }
             });
             builder.show();
@@ -320,23 +180,23 @@ public class MainActivity extends AppCompatActivity{
         } else if (!BTadapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             this.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
-        } else {
+        } /*else {
             BTscanner = BTadapter.getBluetoothLeScanner();
-        }
+        }*/
 
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
         if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             // success! we have an accelerometer
-            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            //accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         } else {
             // fail! we dont have an accelerometer!
             showFinishingAlertDialog("Accelerometer Error", "Accelerometer not detected on device");
         }
         if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED) != null) {
             // success! we have a gyroscope
-            gyroscope= sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
+            //gyroscope= sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
         } else {
             // fail! we dont have a gyroscope!
             showFinishingAlertDialog("Gyroscope Error", "Gyroscope not detected on device");
@@ -350,26 +210,16 @@ public class MainActivity extends AppCompatActivity{
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        finish();
+                        //finish();
                     }
                 }).show();
     }
 
-    static String toHexString(byte[] bytes) {
-        if (bytes.length == 0) {
-            return "";
-        }
-        char[] chars = new char[bytes.length * 2];
-        for (int i = 0; i < bytes.length; i++) {
-            int c = bytes[i] & 0xFF;
-            chars[i * 2] = HEX[c >>> 4];
-            chars[i * 2 + 1] = HEX[c & 0x0F];
-        }
-        return new String(chars).toLowerCase();
-    }
+
 
     private void logErrorAndShowToast(String message) {
         Toast.makeText(this.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
         Log.e("error", message);
     }
+
 }

@@ -1,8 +1,8 @@
 package com.example.test1;
 
-import static com.example.test1.MainActivity.toHexString;
-
 class ValidateServiceData {
+
+    private static final char[] HEX = "0123456789ABCDEF".toCharArray();
 
     static boolean main(byte[] serviceData) {
 
@@ -34,5 +34,18 @@ class ValidateServiceData {
         }
 
         return answer;
+    }
+
+    static String toHexString(byte[] bytes) {
+        if (bytes.length == 0) {
+            return "";
+        }
+        char[] chars = new char[bytes.length * 2];
+        for (int i = 0; i < bytes.length; i++) {
+            int c = bytes[i] & 0xFF;
+            chars[i * 2] = HEX[c >>> 4];
+            chars[i * 2 + 1] = HEX[c & 0x0F];
+        }
+        return new String(chars).toLowerCase();
     }
 }
