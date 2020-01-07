@@ -1,7 +1,6 @@
 package com.example.test1;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -28,7 +27,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -46,15 +44,16 @@ public class MainActivity extends AppCompatActivity{
             new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                     .setReportDelay(0).setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES).build();
 
-    final StringBuffer beacons_data = new StringBuffer();
-    final StringBuffer accelerometer_data = new StringBuffer();
-    final StringBuffer gyroscope_data = new StringBuffer();
+    private StringBuffer beacons_data = new StringBuffer();
+    private StringBuffer accelerometer_data = new StringBuffer();
+    private StringBuffer gyroscope_data = new StringBuffer();
 
     private List<ScanFilter> scanFilters;
     public BluetoothManager BTmanager;
     public BluetoothAdapter BTadapter;
     public BluetoothLeScanner BTscanner;
     int count_beacons = 0;
+    int count_beacons_total = 0;
     //scanFilters.add(new ScanFilter.Builder().setServiceUuid(EDDYSTONE_SERVICE_UUID).build());
 
     public ScanCallback scanCallback = new ScanCallback() {
@@ -82,6 +81,16 @@ public class MainActivity extends AppCompatActivity{
                             .append(rssi).append(",").append(toHexString(serviceData))
                             .append("\n");
                     count_beacons++;
+                    count_beacons_total++;
+                    if (count_beacons>=4000) {
+                        count_beacons = 0;
+                        StringBuffer beacons_data_save = beacons_data;
+
+                        System.out.println("Sale: "+ beacons_data_save.length());
+                        SaveDataToFile.main(participant_ID, "g", beacons_data_save);
+
+                        beacons_data.delete(0,beacons_data.length());
+                    }
                 }
 
             }
@@ -115,6 +124,8 @@ public class MainActivity extends AppCompatActivity{
     public Sensor gyroscope;
     int count_acc =0;
     int count_gyr =0;
+    int count_acc_total =0;
+    int count_gyr_total =0;
 
     public SensorEventListener mSensorListener = new SensorEventListener() {
 
@@ -131,7 +142,17 @@ public class MainActivity extends AppCompatActivity{
                             .append(sensorEvent.values[1]).append(", ")
                             .append(sensorEvent.values[2]).append("\n");
                     count_acc++;
-                    System.out.println(count_acc);
+                    count_acc_total++;
+                    if (count_acc>=4000) {
+                        count_acc = 0;
+                        StringBuffer accelerometer_data_save = accelerometer_data;
+
+                        System.out.println("Sale: "+ accelerometer_data_save.length());
+                        SaveDataToFile.main(participant_ID, "a", accelerometer_data_save);
+
+                        accelerometer_data.delete(0,accelerometer_data.length());
+                    }
+
                     break;
                 case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
                     gyroscope_data.append(sensorTimestampMillis).append(",")
@@ -139,7 +160,16 @@ public class MainActivity extends AppCompatActivity{
                             .append(sensorEvent.values[1]).append(", ")
                             .append(sensorEvent.values[2]).append("\n");
                     count_gyr++;
-                    //System.out.println(count_gyr);
+                    count_gyr_total++;
+                    if (count_gyr>=4000) {
+                        count_gyr = 0;
+                        StringBuffer gyroscope_data_save = gyroscope_data;
+
+                        System.out.println("Sale: "+ gyroscope_data_save.length());
+                        SaveDataToFile.main(participant_ID, "g", gyroscope_data_save);
+
+                        gyroscope_data.delete(0,gyroscope_data.length());
+                    }
                     break;
             }
         }
@@ -168,9 +198,6 @@ public class MainActivity extends AppCompatActivity{
 
         //final String p_ID = "";
         init();
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        gyroscope= sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
 
         scanFilters = new ArrayList<>();
         scanFilters.add(new ScanFilter.Builder().setServiceUuid(ESTIMOTE_SERVICE_UUID).build());
@@ -181,46 +208,34 @@ public class MainActivity extends AppCompatActivity{
         participant_ID = IDTextView.getText().toString();
         if (BTscanner != null) {
 
+            sensorManager.registerListener(mSensorListener, accelerometer, 5000);
+            sensorManager.registerListener(mSensorListener, gyroscope, 5000);
             BTscanner.startScan(scanFilters,SCAN_SETTINGS,scanCallback);
-
-            if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
-                // success! we have an accelerometer
-                sensorManager.registerListener(mSensorListener, accelerometer, 5000);
-            } else {
-                // fail! we dont have an accelerometer!
-                showFinishingAlertDialog("Accelerometer Error", "Accelerometer not detected on device");
-            }
-            if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED) != null) {
-                // success! we have a gyroscope
-                sensorManager.registerListener(mSensorListener, gyroscope, 5000);
-            } else {
-                // fail! we dont have a gyroscope!
-                showFinishingAlertDialog("Gyroscope Error", "Gyroscope not detected on device");
-            }
 
         }
         startButton.setVisibility(View.INVISIBLE);
         stopButton.setVisibility(View.VISIBLE);
     }
     private void stopButtonClicked(){
-        System.out.println("FINAL: "+count_beacons+" "+count_acc+" "+count_gyr);
+
         if (BTscanner != null) {
             BTscanner.stopScan(scanCallback);
         }
         sensorManager.unregisterListener(mSensorListener);
 
+        System.out.println("FINAL: "+count_beacons_total+" "+count_acc_total+" "+count_gyr_total);
+        //System.out.println("sale " + accelerometer_data.length()+ " " + gyroscope_data.length() + " " + beacons_data.length());
         SaveDataToFile.main(participant_ID,"a", accelerometer_data);
-        //SaveDataToFile.main(participant_ID,"g", gyroscope_data);
+        SaveDataToFile.main(participant_ID,"g", gyroscope_data);
         SaveDataToFile.main(participant_ID,"b", beacons_data);
 
-/*        if (ans) {
-            beacons_data.delete(0, beacons_data.length());
-            accelerometer_data.delete(0, accelerometer_data.length());
-            gyroscope_data.delete(0, gyroscope_data.length());
+        beacons_data.delete(0, beacons_data.length());
+        accelerometer_data.delete(0, accelerometer_data.length());
+        gyroscope_data.delete(0, gyroscope_data.length());
 
-            startButton.setVisibility(View.VISIBLE);
-            stopButton.setVisibility(View.INVISIBLE);
-        }*/
+        startButton.setVisibility(View.VISIBLE);
+        stopButton.setVisibility(View.INVISIBLE);
+
     }
 
     class buttonClick implements View.OnClickListener{
@@ -294,6 +309,24 @@ public class MainActivity extends AppCompatActivity{
             this.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
         } else {
             BTscanner = BTadapter.getBluetoothLeScanner();
+        }
+
+
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
+            // success! we have an accelerometer
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        } else {
+            // fail! we dont have an accelerometer!
+            showFinishingAlertDialog("Accelerometer Error", "Accelerometer not detected on device");
+        }
+        if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED) != null) {
+            // success! we have a gyroscope
+            gyroscope= sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
+        } else {
+            // fail! we dont have a gyroscope!
+            showFinishingAlertDialog("Gyroscope Error", "Gyroscope not detected on device");
         }
 
     }
