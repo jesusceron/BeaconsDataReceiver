@@ -36,7 +36,7 @@ class ValidateServiceData {
         return answer;
     }
 
-    static String toHexString(byte[] bytes) {
+    private static String toHexString(byte[] bytes) {
         if (bytes.length == 0) {
             return "";
         }

@@ -88,9 +88,7 @@ public class MyService extends Service {
                         beacons_data.delete(0,beacons_data.length());
                     }
                 }
-
             }
-
         }
 
         @Override
@@ -130,12 +128,6 @@ public class MyService extends Service {
             long sensorTimestampMillis = System.currentTimeMillis() -
                     SystemClock.elapsedRealtime() +
                     sensorEvent.timestamp / 1000000;
-
-/*            if (finish_data_saving == true){
-
-                SaveDataToFile.main(participant_ID, "a", accelerometer_data);
-                SaveDataToFile.main(participant_ID, "g", gyroscope_data);
-            }*/
 
             switch(sensorEvent.sensor.getType()) {
                 case Sensor.TYPE_ACCELEROMETER:
@@ -185,7 +177,6 @@ public class MyService extends Service {
     public void onCreate() {
         super.onCreate();
 
-
     }
 
     @Override
@@ -227,8 +218,6 @@ public class MyService extends Service {
 
         }
 
-        //stopSelf();
-
         return START_NOT_STICKY;
     }
 
@@ -242,7 +231,6 @@ public class MyService extends Service {
         sensorManager.unregisterListener(mSensorListener);
         System.out.println("Sale b");
         SaveDataToFile.main(participant_ID,"b", beacons_data);
-
 
         System.out.println("FINAL: "+count_beacons_total+" "+count_acc_total+" "+count_gyr_total);
         System.out.println("sale acc y gyr");
@@ -261,7 +249,6 @@ public class MyService extends Service {
         return null;
     }
 
-
     static String toHexString(byte[] bytes) {
         if (bytes.length == 0) {
             return "";
@@ -274,8 +261,4 @@ public class MyService extends Service {
         }
         return new String(chars).toLowerCase();
     }
-
-
-
-
 }
