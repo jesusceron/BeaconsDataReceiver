@@ -17,6 +17,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
@@ -42,6 +43,7 @@ public class MyService extends Service {
     private StringBuffer beacons_data = new StringBuffer();
     private StringBuffer accelerometer_data = new StringBuffer();
     private StringBuffer gyroscope_data = new StringBuffer();
+//    private StringBuffer pressure_data = new StringBuffer();
 
     public BluetoothManager BTmanager;
     public BluetoothAdapter BTadapter;
@@ -116,10 +118,13 @@ public class MyService extends Service {
     private SensorManager sensorManager;
     public Sensor accelerometer;
     public Sensor gyroscope;
+//    public Sensor pressure;
     int count_acc =0;
     int count_gyr =0;
+//    int count_pressure =0;
     int count_acc_total =0;
     int count_gyr_total =0;
+//    int count_pressure_total =0;
 
     public SensorEventListener mSensorListener = new SensorEventListener() {
 
@@ -165,6 +170,22 @@ public class MyService extends Service {
                         gyroscope_data.delete(0,gyroscope_data.length());
                     }
                     break;
+/*                case Sensor.TYPE_PRESSURE:
+                    pressure_data.append(sensorTimestampMillis).append(",")
+                            .append(sensorEvent.values[0]).append(System.lineSeparator());
+                    count_pressure++;
+                    count_pressure_total++;
+                    if (count_pressure>=4000) {
+                        count_pressure = 0;
+                        StringBuffer pressure_data_save = pressure_data;
+
+                        System.out.println("Sale pressure");
+                        SaveDataToFile.main(participant_ID, "p", pressure_data_save);
+
+                        pressure_data.delete(0,pressure_data.length());
+                    }
+
+                    break;*/
             }
         }
 
@@ -188,8 +209,11 @@ public class MyService extends Service {
         BTscanner = BTadapter.getBluetoothLeScanner();
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        gyroscope= sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        }
+        gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
+//        pressure = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -214,6 +238,7 @@ public class MyService extends Service {
 
             sensorManager.registerListener(mSensorListener, accelerometer, 5000);
             sensorManager.registerListener(mSensorListener, gyroscope, 5000);
+//            sensorManager.registerListener(mSensorListener, pressure, 5000);
             BTscanner.startScan(scanFilters,SCAN_SETTINGS,scanCallback);
 
         }
@@ -229,17 +254,19 @@ public class MyService extends Service {
             BTscanner.stopScan(scanCallback);
         }
         sensorManager.unregisterListener(mSensorListener);
-        System.out.println("Sale b");
+        System.out.println("Sale beacons");
         SaveDataToFile.main(participant_ID,"b", beacons_data);
 
         System.out.println("FINAL: "+count_beacons_total+" "+count_acc_total+" "+count_gyr_total);
-        System.out.println("sale acc y gyr");
+        System.out.println("sale acc, gyr y pressure");
         SaveDataToFile.main(participant_ID,"a", accelerometer_data);
         SaveDataToFile.main(participant_ID,"g", gyroscope_data);
+//        SaveDataToFile.main(participant_ID,"p", pressure_data);
 
         beacons_data.delete(0, beacons_data.length());
         accelerometer_data.delete(0, accelerometer_data.length());
         gyroscope_data.delete(0, gyroscope_data.length());
+//        pressure_data.delete(0, pressure_data.length());
 
     }
 

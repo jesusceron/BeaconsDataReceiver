@@ -16,14 +16,17 @@ class SaveDataToFile {
         String file_name = "";
         switch (type) {
             case "a":
-                file_name = participant_ID + "_a.txt";
+                file_name = participant_ID + "_acc.csv";
                 break;
             case "g":
-                file_name = participant_ID + "_g.txt";
+                file_name = participant_ID + "_gyr.csv";
                 break;
             case "b":
-                file_name = participant_ID + "_b.txt";
+                file_name = participant_ID + "_beacons.csv";
                 break;
+/*            case "p":
+                file_name = participant_ID + "_pressure.txt";
+                break;*/
         }
 
         try {
