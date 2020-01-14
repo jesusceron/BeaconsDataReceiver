@@ -14,15 +14,20 @@ class SaveDataToFile {
         //Log.d("RSSI", Integer.toString(rssi));
         //Log.d("Estimote service data", serviceData_Hex);
         String file_name = "";
+        //String header = "";
+
         switch (type) {
             case "a":
                 file_name = participant_ID + "_acc.csv";
+                //header = "Timestamp,accX,accY,accZ"+System.lineSeparator();
                 break;
             case "g":
                 file_name = participant_ID + "_gyr.csv";
+                //header = "Timestamp,gyrX,gyrY,gyrZ"+System.lineSeparator();
                 break;
             case "b":
                 file_name = participant_ID + "_beacons.csv";
+                //header = "Timestamp,RSSI,Estimote TLM packet"+System.lineSeparator();
                 break;
 /*            case "p":
                 file_name = participant_ID + "_pressure.txt";
@@ -43,23 +48,24 @@ class SaveDataToFile {
                 if (folder.mkdirs()) {
                     System.out.println("Folder created successfully");
                 } else {
-                    System.out.println("Folder cannot be created");
+                    System.out.println("Folder already created");
                 }
 
                 //create file if it has not been created so far
-
                 File file = new File(dir, file_name);
-/*                    if (file.exists()) {
-                        file.delete();
-                    }*/
-
                 System.out.println("llega " + type);
+
+/*                if (file.exists()) {
+
+                }*/
 
                 FileWriter filerWriter = new FileWriter(file, true);
                 BufferedWriter bufWriter = new BufferedWriter(filerWriter);
                 bufWriter.append(data);
                 bufWriter.close();
                 filerWriter.close();
+
+
 
             }
         } catch (IOException ioe) {

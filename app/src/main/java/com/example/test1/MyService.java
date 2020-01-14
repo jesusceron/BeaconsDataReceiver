@@ -137,8 +137,8 @@ public class MyService extends Service {
             switch(sensorEvent.sensor.getType()) {
                 case Sensor.TYPE_ACCELEROMETER:
                     accelerometer_data.append(sensorTimestampMillis).append(",")
-                            .append(sensorEvent.values[0]).append(", ")
-                            .append(sensorEvent.values[1]).append(", ")
+                            .append(sensorEvent.values[0]).append(",")
+                            .append(sensorEvent.values[1]).append(",")
                             .append(sensorEvent.values[2]).append(System.lineSeparator());
                     count_acc++;
                     count_acc_total++;
@@ -155,8 +155,8 @@ public class MyService extends Service {
                     break;
                 case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
                     gyroscope_data.append(sensorTimestampMillis).append(",")
-                            .append(sensorEvent.values[0]).append(", ")
-                            .append(sensorEvent.values[1]).append(", ")
+                            .append(sensorEvent.values[0]).append(",")
+                            .append(sensorEvent.values[1]).append(",")
                             .append(sensorEvent.values[2]).append(System.lineSeparator());
                     count_gyr++;
                     count_gyr_total++;
@@ -203,6 +203,10 @@ public class MyService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         participant_ID = intent.getStringExtra("inputExtra");
+
+        accelerometer_data.append("Timestamp,accX,accY,accZ").append(System.lineSeparator());
+        beacons_data.append("Timestamp,RSSI,Estimote TLM packet").append(System.lineSeparator());
+        gyroscope_data.append("Timestamp,gyrX,gyrY,gyrZ").append(System.lineSeparator());
 
         BTmanager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         BTadapter = BTmanager.getAdapter();
