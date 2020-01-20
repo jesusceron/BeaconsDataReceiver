@@ -240,8 +240,8 @@ public class MyService extends Service {
 
         if (BTscanner != null) {
 
-            sensorManager.registerListener(mSensorListener, accelerometer, 5000);
-            sensorManager.registerListener(mSensorListener, gyroscope, 5000);
+            sensorManager.registerListener(mSensorListener, accelerometer, 3907);// 1(second)/256(samples/second) = 3906.25
+            sensorManager.registerListener(mSensorListener, gyroscope, 3907);
 //            sensorManager.registerListener(mSensorListener, pressure, 5000);
             BTscanner.startScan(scanFilters,SCAN_SETTINGS,scanCallback);
 

@@ -18,15 +18,15 @@ class SaveDataToFile {
 
         switch (type) {
             case "a":
-                file_name = participant_ID + "_acc.csv";
+                file_name = participant_ID + "_acc_raw.csv";
                 //header = "Timestamp,accX,accY,accZ"+System.lineSeparator();
                 break;
             case "g":
-                file_name = participant_ID + "_gyr.csv";
+                file_name = participant_ID + "_gyr_raw.csv";
                 //header = "Timestamp,gyrX,gyrY,gyrZ"+System.lineSeparator();
                 break;
             case "b":
-                file_name = participant_ID + "_beacons.csv";
+                file_name = participant_ID + "_beacons_raw.csv";
                 //header = "Timestamp,RSSI,Estimote TLM packet"+System.lineSeparator();
                 break;
 /*            case "p":
