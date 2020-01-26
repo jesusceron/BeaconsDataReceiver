@@ -78,6 +78,103 @@ public class MyService extends Service {
                     beacons_data.append( btTimestampMillis ).append(",")
                             .append(rssi).append(",").append(toHexString(serviceData))
                             .append(System.lineSeparator());
+
+                    // Only for seeing values of TLM_Packet
+/*                    String tlm_packet = toHexString(serviceData);
+                    String beacon_name = "";
+                    switch (tlm_packet.substring(2,18)) {
+
+                        case "46846e6187678448"://Coconut
+                            beacon_name = "Coconut";
+                            break;
+                        case "7897b2192cd1330e"://Mint
+                            beacon_name = "Mint";
+                            break;
+                        case "f32a65edd388bbd4"://Ice
+                            beacon_name = "Ice";
+                            break;
+                        case "c7f00010b342cf9e"://Blueberry
+                            beacon_name = "Blueberry";
+                            break;
+                        case "992074a3a75b01dd"://P2
+                            beacon_name = "P2";
+                            break;
+                        case "eeaf86657d2312d5"://P1
+                            beacon_name = "P1";
+                            break;
+                        case "7bb8ba833ded2db9"://B2
+                            beacon_name = "B2";
+                            break;
+                        case "3e03d2aaf4265aa5"://B1
+                            beacon_name = "B1";
+                            break;
+                        case "3c53d934182ed091"://G2
+                            beacon_name = "G2";
+                            break;
+                        case "318da9517131bfab"://G1
+                            beacon_name = "G1";
+                            break;
+                        default:
+                            beacon_name = "Unknown beacon";
+                            break;
+                    }
+
+                    String[] bytes_hex_acc = new String[3];
+                    Integer[] int_acc = new Integer[3];
+                    String[] bytes_string_acc = new String[3];
+                    bytes_hex_acc[0] = tlm_packet.substring(20,22);// Acc x
+                    bytes_hex_acc[1] = tlm_packet.substring(22,24);// Acc y
+                    bytes_hex_acc[2] = tlm_packet.substring(24,26);// Acc z
+                    int_acc[0] = Integer.parseInt(bytes_hex_acc[0], 16);
+                    int_acc[1]  = Integer.parseInt(bytes_hex_acc[1], 16);
+                    int_acc[2]  = Integer.parseInt(bytes_hex_acc[2], 16);
+                    bytes_string_acc[0] = Integer.toBinaryString(int_acc[0]);
+                    bytes_string_acc[1] = Integer.toBinaryString(int_acc[1]);
+                    bytes_string_acc[2] = Integer.toBinaryString(int_acc[2]);
+
+                    Double[] acc = new Double[3];
+                    for (int i=0;i<=2;i++){
+                        if (bytes_string_acc[i].length()<8) {//if the number does not have 8 bits, it is a positive number
+                            acc[i] = (int_acc[i] * 2 / 127.0) * 9.81;// positive number. It doesn't need two's complement conversion
+                        }
+                        else{
+                            if (String.valueOf(bytes_string_acc[i].charAt(0)).equals("1")){ //negative number -> two's complement
+                                String acc_2s_string = "";
+                                // Inverting the bits one by one
+                                for (int b_i=0;b_i<8;b_i++) {
+                                    if (String.valueOf(bytes_string_acc[i].charAt(b_i)).equals("1")){
+                                        acc_2s_string += '0';
+                                    } else{
+                                        acc_2s_string += '1';
+                                    }
+                                }
+                                int acc_2s_int = (Integer.parseInt(acc_2s_string, 2)+1)*-1;
+                                acc[i] = (acc_2s_int * 2 / 127.0) * 9.81;//
+                            } else{
+                                acc[i] = (int_acc[i] * 2 / 127.0) * 9.81;// positive number. It doesn't need two's complement conversion
+                            }
+                        }
+                    }
+
+
+                    String byte_15_hex = tlm_packet.substring(31,32);// last 4 bits of byte 15
+                    //Log.d("Service Data", tlm_packet);
+                    //Log.d("Byte 15", byte_15_hex);
+                    int byte_15_int = Integer.parseInt(byte_15_hex, 16);
+                    String byte_15_binary = Integer.toBinaryString(byte_15_int);
+                    char m = byte_15_binary.charAt(byte_15_binary.length()-1); //last bit of byte 15
+
+                    System.out.printf(" %.3f", acc[0]);
+                    System.out.printf(" %.3f", acc[1]);
+                    System.out.printf(" %.3f", acc[2]);
+                    if (String.valueOf(m).equals("1")){
+                        System.out.println(' ' + beacon_name + " IN MOVEMENT");
+                    }else{
+                        System.out.println(' ' + beacon_name);
+                    }*/
+
+
+
                     count_beacons++;
                     count_beacons_total++;
                     if (count_beacons>=4000) {
@@ -240,9 +337,9 @@ public class MyService extends Service {
 
         if (BTscanner != null) {
 
-            sensorManager.registerListener(mSensorListener, accelerometer, 3907);// 1(second)/256(samples/second) = 3906.25
-            sensorManager.registerListener(mSensorListener, gyroscope, 3907);
-//            sensorManager.registerListener(mSensorListener, pressure, 5000);
+            sensorManager.registerListener(mSensorListener, accelerometer, 4889);// 1(second)/204.8(samples/second) = 3906.25
+            sensorManager.registerListener(mSensorListener, gyroscope, 4889);
+//            sensorManager.registerListener(mSensorListener, pressure, 4889);
             BTscanner.startScan(scanFilters,SCAN_SETTINGS,scanCallback);
 
         }
