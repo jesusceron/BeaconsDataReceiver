@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity{
              // fail! we dont have an accelerometer!
             showFinishingAlertDialog("Accelerometer Error", "Accelerometer not detected on device");
         }
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED) == null) {
+        if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) == null) {
 
             // fail! we dont have a gyroscope!
             showFinishingAlertDialog("Gyroscope Error", "Gyroscope not detected on device");

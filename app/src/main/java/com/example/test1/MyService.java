@@ -22,6 +22,7 @@ import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -68,7 +69,7 @@ public class MyService extends Service {
                 return;
             }
 
-            //Log.d("OJO", toHexString(scanRecord.getBytes())); // see the complete advertisement packet
+            //Log.d("OJO", Integer.toString(rssi) + "    " + toHexString(scanRecord.getBytes())); // see the complete advertisement packet
             byte[] serviceData = Objects.requireNonNull(result.getScanRecord()).getServiceData(ESTIMOTE_SERVICE_UUID);
 
             if (serviceData!=null){
@@ -78,6 +79,11 @@ public class MyService extends Service {
                     beacons_data.append( btTimestampMillis ).append(",")
                             .append(rssi).append(",").append(toHexString(serviceData))
                             .append(System.lineSeparator());
+                    Log.d("RSSI: ", Integer.toString(rssi));
+
+                    int duration = Toast.LENGTH_SHORT;
+                    Toast toast = Toast.makeText(getApplicationContext(), Integer.toString(rssi), duration);
+                    toast.show();
 
                     // Only for seeing values of TLM_Packet
 /*                    String tlm_packet = toHexString(serviceData);
@@ -174,8 +180,8 @@ public class MyService extends Service {
                     }*/
 
 
-
-                    count_beacons++;
+                    count_beacons_total++;
+/*                    count_beacons++;
                     count_beacons_total++;
                     if (count_beacons>=4000) {
                         count_beacons = 0;
@@ -185,7 +191,7 @@ public class MyService extends Service {
                         SaveDataToFile.main(participant_ID, "b", beacons_data_save);
 
                         beacons_data.delete(0,beacons_data.length());
-                    }
+                    }*/
                 }
             }
         }
@@ -222,22 +228,32 @@ public class MyService extends Service {
     int count_acc_total =0;
     int count_gyr_total =0;
 //    int count_pressure_total =0;
+    long sensorTimestampMillis;
+    long sensorTimestampAcc;
+    long sensorTimestampGyr;
 
     public SensorEventListener mSensorListener = new SensorEventListener() {
 
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            long sensorTimestampMillis = System.currentTimeMillis() -
+            sensorTimestampMillis = System.currentTimeMillis() -
                     SystemClock.elapsedRealtime() +
                     sensorEvent.timestamp / 1000000;
 
             switch(sensorEvent.sensor.getType()) {
                 case Sensor.TYPE_ACCELEROMETER:
+
                     accelerometer_data.append(sensorTimestampMillis).append(",")
                             .append(sensorEvent.values[0]).append(",")
                             .append(sensorEvent.values[1]).append(",")
                             .append(sensorEvent.values[2]).append(System.lineSeparator());
-                    count_acc++;
+
+                    if (sensorTimestampMillis-sensorTimestampAcc>20){
+                        Log.d("ERROR DE SYNCRONIZACION","ACC");
+                    }
+                    sensorTimestampAcc = sensorTimestampMillis;
+                    count_acc_total++;
+/*                    count_acc++;
                     count_acc_total++;
                     if (count_acc>=4000) {
                         count_acc = 0;
@@ -247,15 +263,21 @@ public class MyService extends Service {
                         SaveDataToFile.main(participant_ID, "a", accelerometer_data_save);
 
                         accelerometer_data.delete(0,accelerometer_data.length());
-                    }
+                    }*/
 
                     break;
-                case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
+                case Sensor.TYPE_GYROSCOPE:
                     gyroscope_data.append(sensorTimestampMillis).append(",")
                             .append(sensorEvent.values[0]).append(",")
                             .append(sensorEvent.values[1]).append(",")
                             .append(sensorEvent.values[2]).append(System.lineSeparator());
-                    count_gyr++;
+
+                    if (sensorTimestampMillis-sensorTimestampGyr>20){
+                        Log.d("ERROR DE SYNCRONIZACION","GYRO");
+                    }
+                    sensorTimestampGyr = sensorTimestampMillis;
+                    count_gyr_total++;
+/*                    count_gyr++;
                     count_gyr_total++;
                     if (count_gyr>=4000) {
                         count_gyr = 0;
@@ -265,7 +287,7 @@ public class MyService extends Service {
                         SaveDataToFile.main(participant_ID, "g", gyroscope_data_save);
 
                         gyroscope_data.delete(0,gyroscope_data.length());
-                    }
+                    }*/
                     break;
 /*                case Sensor.TYPE_PRESSURE:
                     pressure_data.append(sensorTimestampMillis).append(",")
@@ -313,7 +335,7 @@ public class MyService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         }
-        gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
+        gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 //        pressure = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
 
@@ -337,8 +359,8 @@ public class MyService extends Service {
 
         if (BTscanner != null) {
 
-            sensorManager.registerListener(mSensorListener, accelerometer, 4889);// 1(second)/204.8(samples/second) = 3906.25
-            sensorManager.registerListener(mSensorListener, gyroscope, 4889);
+            sensorManager.registerListener(mSensorListener, accelerometer, 4883);// 1(second)/204.8(samples/second) = 4882.8125
+            sensorManager.registerListener(mSensorListener, gyroscope, 4883);
 //            sensorManager.registerListener(mSensorListener, pressure, 4889);
             BTscanner.startScan(scanFilters,SCAN_SETTINGS,scanCallback);
 
