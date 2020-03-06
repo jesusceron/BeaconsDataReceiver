@@ -49,7 +49,6 @@ public class MyService extends Service {
     public BluetoothManager BTmanager;
     public BluetoothAdapter BTadapter;
     public BluetoothLeScanner BTscanner;
-    int count_beacons = 0;
     int count_beacons_total = 0;
 
     private String participant_ID;
@@ -73,13 +72,14 @@ public class MyService extends Service {
             byte[] serviceData = Objects.requireNonNull(result.getScanRecord()).getServiceData(ESTIMOTE_SERVICE_UUID);
 
             if (serviceData!=null){
-
+                //Log.d("RSSI conectivity:", Integer.toString(rssi));
                 boolean answer = ValidateServiceData.main(serviceData);
                 if (answer) {
                     beacons_data.append( btTimestampMillis ).append(",")
                             .append(rssi).append(",").append(toHexString(serviceData))
                             .append(System.lineSeparator());
-                    Log.d("RSSI: ", Integer.toString(rssi));
+                    //Log.d("RSSI: ", Integer.toString(rssi));
+                    Log.d("Saved in file", rssi + "    " + toHexString(serviceData)); // see the complete advertisement packet
 
                     int duration = Toast.LENGTH_SHORT;
                     Toast toast = Toast.makeText(getApplicationContext(), Integer.toString(rssi), duration);
@@ -222,8 +222,6 @@ public class MyService extends Service {
     public Sensor accelerometer;
     public Sensor gyroscope;
 //    public Sensor pressure;
-    int count_acc =0;
-    int count_gyr =0;
 //    int count_pressure =0;
     int count_acc_total =0;
     int count_gyr_total =0;

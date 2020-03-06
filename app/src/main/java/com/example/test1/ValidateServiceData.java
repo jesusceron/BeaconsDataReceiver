@@ -9,8 +9,8 @@ class ValidateServiceData {
         boolean answer = false;
         String serviceData_Hex = toHexString(serviceData);
 
-        /* Choose only packets with accelerometer data (frame a)*/
-        if ((serviceData_Hex.substring(0,2).equals("22"))&(serviceData_Hex.substring(18,20).equals("00"))){
+        /* '22' for Estimote TLM packets and '00' for Estimote conectivity packets*/
+        if ((serviceData_Hex.substring(0,2).equals("22"))||(serviceData_Hex.substring(0,2).equals("00"))){
 
             switch (serviceData_Hex.substring(2,18)) {
 
