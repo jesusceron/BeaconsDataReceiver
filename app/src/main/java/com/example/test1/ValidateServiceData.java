@@ -15,7 +15,7 @@ class ValidateServiceData {
             switch (serviceData_Hex.substring(2,18)) {
 
                 case "46846e6187678448"://Coconut
-                case "7897b2192cd1330e"://Mint
+                case "7897b2192cd1330e"://Mint x
                 case "f32a65edd388bbd4"://Ice
                 case "c7f00010b342cf9e"://Blueberry
                 case "992074a3a75b01dd"://P2

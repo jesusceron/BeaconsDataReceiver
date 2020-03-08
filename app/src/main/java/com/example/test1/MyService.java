@@ -78,12 +78,11 @@ public class MyService extends Service {
                     beacons_data.append( btTimestampMillis ).append(",")
                             .append(rssi).append(",").append(toHexString(serviceData))
                             .append(System.lineSeparator());
-                    //Log.d("RSSI: ", Integer.toString(rssi));
-                    Log.d("Saved in file", rssi + "    " + toHexString(serviceData)); // see the complete advertisement packet
+                    //Log.d("Saved in file", rssi + "    " + toHexString(serviceData)); // see the complete advertisement packet
 
-                    int duration = Toast.LENGTH_SHORT;
+/*                    int duration = Toast.LENGTH_SHORT;
                     Toast toast = Toast.makeText(getApplicationContext(), Integer.toString(rssi), duration);
-                    toast.show();
+                    toast.show();*/
 
                     // Only for seeing values of TLM_Packet
 /*                    String tlm_packet = toHexString(serviceData);
